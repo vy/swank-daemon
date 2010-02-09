@@ -1,0 +1,66 @@
+
+     ______     __     __     ______     __   __     __  __
+    /\  ___\   /\ \  _ \ \   /\  __ \   /\ "-.\ \   /\ \/ /
+    \ \___  \  \ \ \/ ".\ \  \ \  __ \  \ \ \-.  \  \ \  _"-.
+     \/\_____\  \ \__/".~\_\  \ \_\ \_\  \ \_\\"\_\  \ \_\ \_\
+      \/_____/   \/_/   \/_/   \/_/\/_/   \/_/ \/_/   \/_/\/_/
+          _____     ______     ______     __    __     ______     __   __
+         /\  __-.  /\  __ \   /\  ___\   /\ "-./  \   /\  __ \   /\ "-.\ \
+         \ \ \/\ \ \ \  __ \  \ \  __\   \ \ \-./\ \  \ \ \/\ \  \ \ \-.  \
+          \ \____-  \ \_\ \_\  \ \_____\  \ \_\ \ \_\  \ \_____\  \ \_\\"\_\
+           \/____/   \/_/\/_/   \/_____/   \/_/  \/_/   \/_____/   \/_/ \/_/
+
+_____________________________________________________________.           .______
+                                                             | A B O U T |
+                                                             `-----------'
+
+swank-daemon supplies a small collection of utility scripts to daemonize
+swank[1] under GNU screen[2] at system startup.
+
+Pay attention that "swank-start.lisp" script will try to stop swank via killing
+the parent screen process. To avoid any kind of corruption, you may want to
+establish some sort of communication system by using interrupts specific to your
+lisp implementation.
+
+[1] http://common-lisp.net/project/slime/
+[2] http://www.gnu.org/software/screen/
+
+_______________________________________________.                         .______
+                                               | I N S T A L L A T I O N |
+                                               `-------------------------'
+
+First of all, you may want to check swank-start.lisp if it really starts swank
+successfully in your lisp implementation. Otherwise you may need to make extra
+modifications.
+
+- Create a new user for the swank process.
+
+  $ useradd useradd --comment "swank user" \
+  >                 --home /var/swank      \
+  >                 --gid nogroup          \
+  >                 --shell /bin/bash swank
+  $ mkdir /var/swank                            # See "swank.sh" for "SWANK_HOME".
+  $ chown swank:root /var/swank
+
+- Copy files to appropriate locations
+
+  $ cp /path/to/swank.sh /etc/init.d
+  $ chmod 755 /etc/init.d/swank.sh
+  $ chown root:root /etc/init.d/swank.sh
+
+  $ cd /etc/rc2.d                               # Optional.
+  $ ln -s ../init.d/swank.sh S90swank.sh        # Optional.
+
+  $ cp /path/to/swank-start.lisp /var/swank
+  $ chown root:root /var/swank/swank-start.lisp
+
+- Don't forget to edit swank.sh suitable to your needs.
+
+- Make a test run.
+
+  $ /etc/init.d/swank.sh start
+  $ netstat -plunt                              # See if it's alive.
+  $ screen -r "`cat /var/swank/screen-<PORT>`"  # Don't forget to replace <PORT>.
+
+  # Looks ok? Then detach it via "C-a z".
+  $ /etc/init.d/swank.sh stop
